@@ -1,0 +1,577 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Calendar, MapPin, Clock, Music, Play, Pause, Gift, CheckCircle, HardHat, Hammer, Wrench, Truck, Cone, TriangleAlert, CircleDot, Settings, Ruler, Shovel, Info, MessageCircle } from 'lucide-react';
+
+export default function InvitacionKalel() {
+  // =================================================================
+  // 🎨 ZONA DE EDICIÓN FÁCIL
+  // =================================================================
+  
+  // 1. FOTO PRINCIPAL (La que sale en el círculo grande central)
+  const fotoCumpleanero = "https://i.imgur.com/i5Tftdu.jpg"; 
+
+  // 2. FOTOS FLOTANTES (Burbujas)
+  const fotosBurbuja = [
+    "https://i.imgur.com/LQ6IFnW.jpg",
+    "https://i.imgur.com/atae7WD.jpg",
+    "https://i.imgur.com/HFR6OsL.jpg",
+    "https://i.imgur.com/rnz1VSF.jpg"
+  ];
+
+  // 3. VIDEO DE INTRO (IMGUR / MP4):
+  const videoIntro = "https://i.imgur.com/z7mDcNh.mp4";
+
+  // 4. MÚSICA DE FONDO:
+  const musicaFondo = "https://media.vocaroo.com/mp3/12dEuflncujS"; 
+  
+  // =================================================================
+
+  const [rsvpOpen, setRsvpOpen] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Estados para controlar la fase (Video -> Invitación)
+  const [showVideoIntro, setShowVideoIntro] = useState(true);
+  
+  // Audio Ref
+  const audioRef = useRef(null);
+  const videoRef = useRef(null);
+
+  // Intentar reproducir el video automáticamente al cargar
+  useEffect(() => {
+    if (showVideoIntro && videoRef.current) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("Autoplay bloqueado por el navegador (normal en móviles con sonido):", error);
+        });
+      }
+    }
+  }, [showVideoIntro]);
+
+  // Countdown Logic
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const eventDate = new Date('2026-02-15T16:00:00'); 
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const difference = eventDate - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const toggleMusic = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const enterParty = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    setShowVideoIntro(false);
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5;
+      audioRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(e => console.log("Autoplay prevented", e));
+    }
+  };
+
+  const handleRSVP = (e) => {
+    e.preventDefault();
+    if (guestName.trim()) {
+      setFormSubmitted(true);
+      
+      // --- LÓGICA DE WHATSAPP ---
+      const telefono = "524436853800"; // Número de México
+      const mensaje = `Hola, soy *${guestName}* y confirmo mi asistencia al cumple número 4 de Kalel 🚧🚜. ¡Ahí nos vemos!`;
+      const urlWhatsapp = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+      
+      // Esperamos 1.5 segundos mostrando el éxito y luego abrimos WhatsApp
+      setTimeout(() => {
+        window.open(urlWhatsapp, '_blank');
+        setRsvpOpen(false);
+        setGuestName('');
+        setFormSubmitted(false);
+      }, 1500);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-blue-500 font-sans relative overflow-x-hidden selection:bg-blippi-orange selection:text-white">
+      {/* Inject Google Font for Blippi feel */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+        
+        .font-blippi { font-family: 'Fredoka', sans-serif; }
+        
+        .bg-blippi-orange { background-color: #F96302; }
+        .text-blippi-orange { color: #F96302; }
+        .bg-blippi-blue { background-color: #2C75FF; }
+        .text-blippi-blue { color: #2C75FF; }
+        
+        .pattern-dots {
+          background-image: radial-gradient(#ffffff 20%, transparent 20%);
+          background-size: 20px 20px;
+          opacity: 0.2;
+        }
+
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 2s infinite ease-in-out;
+        }
+        
+        @keyframes float-icons {
+          0% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+          100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        @keyframes float-bubble {
+          0% { transform: translate(0, 0) rotate(0deg); }
+          33% { transform: translate(10px, -15px) rotate(2deg); }
+          66% { transform: translate(-5px, 10px) rotate(-2deg); }
+          100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        @keyframes drive-across {
+          0% { transform: translateX(-100vw); }
+          100% { transform: translateX(100vw); }
+        }
+        
+        .floating-icon {
+          position: absolute;
+          animation: float-icons 6s infinite ease-in-out;
+          pointer-events: none;
+          z-index: 0;
+        }
+        
+        .bubble-photo {
+          position: absolute;
+          animation: float-bubble 8s infinite ease-in-out;
+          z-index: 0;
+          border-radius: 9999px;
+          border: 4px solid white;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          overflow: hidden;
+          object-fit: cover;
+        }
+
+        .driving-truck {
+           position: absolute;
+           animation: drive-across 15s linear infinite;
+           pointer-events: none;
+           z-index: 0;
+           opacity: 0.15;
+        }
+        
+        /* Cinta de precaución estilo construcción */
+        .caution-tape {
+          background: repeating-linear-gradient(
+            45deg,
+            #F96302,
+            #F96302 10px,
+            #000 10px,
+            #000 20px
+          );
+        }
+      `}</style>
+
+      {/* Audio Element (Música de Fondo) */}
+      <audio ref={audioRef} loop>
+        <source src={musicaFondo} type="audio/mpeg" />
+      </audio>
+
+      {/* --- VIDEO INTRO OVERLAY --- */}
+      {showVideoIntro && (
+        <div className="fixed inset-0 z-50 bg-blippi-blue flex flex-col items-center justify-between p-0 animate-fade-in overflow-hidden h-[100dvh]">
+          
+          <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/50 to-transparent pt-6 pointer-events-none">
+             <div className="flex justify-center items-center gap-2 mb-1">
+                <HardHat className="text-blippi-orange drop-shadow-md" size={32} />
+             </div>
+             <h1 className="font-blippi text-2xl font-bold text-white text-center drop-shadow-md">
+               ¡HOLA CONSTRUCTORES!
+             </h1>
+             <p className="font-blippi text-white/90 text-sm text-center drop-shadow-sm">Mira el mensaje de obra...</p>
+          </div>
+
+          <div className="relative w-full h-full bg-black flex items-center justify-center">
+            <video 
+              ref={videoRef}
+              className="w-full h-full object-cover" 
+              src={videoIntro}
+              controls
+              autoPlay
+              playsInline
+              poster={fotoCumpleanero}
+              style={{ maxHeight: '100dvh' }}
+            >
+              Tu navegador no soporta este video.
+            </video>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 z-30 p-8 pb-12 flex justify-center bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+            <button 
+               onClick={enterParty}
+               className="pointer-events-auto w-full max-w-xs bg-blippi-orange text-white font-blippi font-bold text-2xl py-4 rounded-full shadow-[0_4px_0_rgb(180,60,0)] active:shadow-none active:translate-y-1 transition-all flex items-center justify-center gap-2 animate-bounce-slow border-4 border-white transform hover:scale-105"
+             >
+               <span>¡A LA OBRA!</span>
+               <Truck fill="white" size={28}/>
+             </button>
+          </div>
+        </div>
+      )}
+
+      {/* --- INVITACIÓN PRINCIPAL --- */}
+      <div className={`relative min-h-screen pb-12 transition-opacity duration-1000 ${showVideoIntro ? 'opacity-0 hidden' : 'opacity-100'}`}>
+        <div className="absolute inset-0 pattern-dots pointer-events-none"></div>
+
+        {/* --- CAPA DE FOTOS FLOTANTES (BURBUJAS REORGANIZADAS) --- */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            {/* Foto 1: Arriba Izquierda (Un poco más pequeña) */}
+            <div className="bubble-photo left-[-10px] top-[10%] w-20 h-20 sm:w-28 sm:h-28 rotate-[-5deg] border-blippi-orange" style={{animationDelay: '0s'}}>
+                <img src={fotosBurbuja[0]} alt="Kalel 1" className="w-full h-full object-cover" />
+            </div>
+            
+            {/* Foto 2: Arriba Derecha (Más abajo para no tapar el nombre) */}
+            <div className="bubble-photo right-[-15px] top-[22%] w-22 h-22 sm:w-32 sm:h-32 rotate-[5deg] border-blippi-blue" style={{animationDelay: '2s'}}>
+                <img src={fotosBurbuja[1]} alt="Kalel 2" className="w-full h-full object-cover" />
+            </div>
+
+            {/* Foto 3: Medio Izquierda (Abajo del countdown) */}
+            <div className="bubble-photo left-[-10px] top-[55%] w-20 h-20 sm:w-28 sm:h-28 rotate-[-3deg] border-yellow-400" style={{animationDelay: '4s'}}>
+                <img src={fotosBurbuja[2]} alt="Kalel 3" className="w-full h-full object-cover" />
+            </div>
+
+            {/* Foto 4: Abajo Derecha (Cerca del pie de página) */}
+            <div className="bubble-photo right-[-10px] top-[75%] w-24 h-24 sm:w-32 sm:h-32 rotate-[6deg] border-blippi-orange" style={{animationDelay: '1s'}}>
+                <img src={fotosBurbuja[3]} alt="Kalel 4" className="w-full h-full object-cover" />
+            </div>
+        </div>
+
+        {/* --- FLOTA DE CONSTRUCCIÓN (FONDO - Detrás de las fotos) --- */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-50">
+           
+           {/* Excavadora Gigante */}
+           <div className="floating-icon left-[-20px] top-[28%] text-[8rem] opacity-20 rotate-12" style={{animationDelay: '0s'}}>
+             🚜
+           </div>
+           
+           {/* Grúa Gigante */}
+           <div className="floating-icon right-[-30px] top-[45%] text-[9rem] opacity-15 -rotate-6" style={{animationDelay: '2s'}}>
+             🏗️
+           </div>
+
+           {/* Camión de Volteo Gigante */}
+           <div className="floating-icon left-[30%] bottom-[5%] text-[10rem] opacity-10 rotate-3" style={{animationDelay: '4s'}}>
+             🚛
+           </div>
+
+           {/* --- Iconos Lucide Grandes --- */}
+           <div className="floating-icon left-[10%] top-[40%] text-blippi-orange opacity-20" style={{animationDelay: '2.5s'}}>
+             <Truck size={120} strokeWidth={1} />
+           </div>
+           
+           <div className="floating-icon left-[-40px] bottom-[20%] text-blippi-orange opacity-15" style={{animationDelay: '3.5s'}}>
+             <Cone size={150} strokeWidth={1} />
+           </div>
+
+           <div className="floating-icon right-[-20px] bottom-[-20px] text-gray-800 opacity-10" style={{animationDelay: '1.5s'}}>
+             <Settings size={180} strokeWidth={1} />
+           </div>
+
+           {/* --- Herramientas --- */}
+           <div className="floating-icon left-[20%] top-[5%] text-gray-400 opacity-20" style={{animationDelay: '1s'}}>
+             <Hammer size={60} />
+           </div>
+           <div className="floating-icon left-[60%] top-[15%] text-blippi-orange opacity-20" style={{animationDelay: '3s'}}>
+             <Wrench size={70} />
+           </div>
+        </div>
+
+        {/* Top Decorative Bar */}
+        <div className="caution-tape h-6 w-full sticky top-0 z-20 border-b-2 border-white"></div>
+        <div className="bg-white h-4 w-full sticky top-6 z-20 shadow-sm"></div>
+
+        <div className="max-w-md mx-auto relative z-10 px-4 pt-6">
+          
+          {/* Header */}
+          <div className="text-center mb-6 mt-4">
+            <div className="inline-block relative">
+               <div className="absolute -top-6 -right-6 animate-bounce-slow">
+                 <div className="bg-yellow-400 p-3 rounded-full border-4 border-white shadow-md transform rotate-12">
+                   <Truck size={36} className="text-blippi-blue" strokeWidth={2.5} />
+                 </div>
+               </div>
+               
+               {/* Decoración extra izquierda: Llanta */}
+               <div className="absolute top-10 -left-12 animate-bounce-slow" style={{animationDelay: '0.5s'}}>
+                 <CircleDot size={40} className="text-black fill-gray-800 border-2 border-white rounded-full bg-white" />
+               </div>
+
+               <div className="flex justify-center mb-2">
+                 <div className="relative transform scale-125">
+                    <div className="w-0 h-0 border-l-[30px] border-l-transparent border-r-[30px] border-r-transparent border-b-[40px] border-b-[#F96302] rotate-90 inline-block mr-[-10px]"></div>
+                    <div className="bg-[#F96302] w-6 h-6 rounded-full inline-block relative z-10"></div>
+                    <div className="w-0 h-0 border-l-[30px] border-l-transparent border-r-[30px] border-r-transparent border-b-[40px] border-b-[#F96302] -rotate-90 inline-block ml-[-10px]"></div>
+                 </div>
+               </div>
+            </div>
+
+            <h2 className="font-blippi text-white text-3xl font-bold drop-shadow-md mt-4 flex items-center justify-center gap-2">
+              <Wrench size={24} className="text-yellow-300" />
+              ¡ES EL CUMPLE DE!
+              <Hammer size={24} className="text-yellow-300 transform scale-x-[-1]" />
+            </h2>
+            <h1 className="font-blippi text-7xl text-white font-black drop-shadow-[4px_4px_0_rgba(249,99,2,1)] mt-2 tracking-wide transform -rotate-2">
+              KALEL
+            </h1>
+            
+            {/* --- SECCIÓN DE FOTO PRINCIPAL --- */}
+            <div className="mt-8 mb-6 flex justify-center">
+              <div className="relative w-56 h-56">
+                <div className="absolute inset-0 bg-blippi-orange rounded-full transform rotate-3 scale-105 border-4 border-white shadow-lg"></div>
+                <div className="absolute inset-0 bg-blippi-blue rounded-full transform -rotate-2 scale-100 border-4 border-white shadow-lg overflow-hidden">
+                   <img 
+                    src={fotoCumpleanero} 
+                    alt="Cumpleañero" 
+                    className="w-full h-full object-cover"
+                   />
+                </div>
+                {/* Decoration: Cono */}
+                <div className="absolute -bottom-2 -right-2 bg-yellow-400 p-3 rounded-full border-4 border-white shadow-sm z-10 transform rotate-12">
+                   <Cone size={32} className="text-blippi-blue fill-blippi-orange" />
+                </div>
+                {/* Decoration: Engranaje */}
+                <div className="absolute -top-2 -left-2 bg-white p-2 rounded-full border-4 border-blippi-orange shadow-sm z-10 transform -rotate-12">
+                   <Settings size={28} className="text-blippi-blue animate-spin-slow" style={{animationDuration: '10s'}} />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white inline-block px-8 py-2 rounded-full mt-2 transform rotate-1 shadow-lg border-2 border-blippi-blue">
+              <span className="font-blippi text-blippi-blue font-bold text-3xl">¡CUMPLE 4 AÑOS!</span>
+            </div>
+          </div>
+
+          {/* Countdown */}
+          <div className="bg-blippi-orange rounded-3xl p-6 shadow-lg border-4 border-white mb-8 text-center text-white relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full bg-white opacity-10 pattern-dots"></div>
+            
+            {/* Decoraciones en la tarjeta de Countdown */}
+            <div className="absolute top-2 right-2 opacity-50"><TriangleAlert size={24} color="white" /></div>
+            <div className="absolute bottom-2 left-2 opacity-30"><CircleDot size={32} color="black" /></div>
+            
+            <p className="font-blippi font-bold text-xl mb-3 relative z-10 flex items-center justify-center gap-2">
+              <HardHat size={20} />
+              LA OBRA EMPIEZA EN:
+            </p>
+            <div className="flex justify-center gap-2 relative z-10">
+              {[
+                { label: 'DÍAS', value: timeLeft.days },
+                { label: 'HRS', value: timeLeft.hours },
+                { label: 'MIN', value: timeLeft.minutes },
+                { label: 'SEG', value: timeLeft.seconds }
+              ].map((item, idx) => (
+                <div key={idx} className="flex flex-col items-center flex-1">
+                  <div className="bg-white w-full aspect-square rounded-2xl flex items-center justify-center shadow-[0_4px_0_rgba(0,0,0,0.1)] mb-1 border-b-4 border-gray-200">
+                    <span className="font-blippi text-blippi-blue font-bold text-2xl sm:text-3xl">{item.value}</span>
+                  </div>
+                  <span className="text-xs font-bold opacity-90 tracking-wider">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Info Card */}
+          <div className="bg-white rounded-[2rem] p-6 shadow-xl border-b-8 border-blippi-blue mb-8 relative overflow-hidden">
+            {/* Fondo decorativo: Excavadora Gigante (Emoji) */}
+            <div className="absolute -right-2 -bottom-2 opacity-10 pointer-events-none transform rotate-12 text-[8rem]">
+              🚜
+            </div>
+            {/* Herramientas decorativas en esquinas */}
+            <div className="absolute top-4 left-4 opacity-10 pointer-events-none transform -rotate-45">
+               <Hammer size={40} />
+            </div>
+
+            <div className="text-center mb-6 relative z-10">
+              <p className="font-blippi text-2xl text-gray-700 leading-tight">
+                ¡Ponte tu casco! Habrá mucha <span className="text-blippi-orange font-bold">construcción</span>, juegos, <span className="text-blippi-blue font-bold">mucho baile</span> y nos vamos a divertir mucho.
+              </p>
+            </div>
+
+            <div className="space-y-6 relative z-10">
+              {/* Date */}
+              <div className="flex items-center gap-4 bg-blue-50 p-4 rounded-2xl border-2 border-blue-100">
+                <div className="bg-blippi-blue p-3 rounded-full shrink-0">
+                  <Calendar className="text-white" size={28} />
+                </div>
+                <div>
+                  <p className="font-blippi text-gray-500 text-sm font-bold uppercase tracking-wider">¿Cuándo?</p>
+                  <p className="font-blippi text-blippi-blue text-2xl font-bold">15 de Febrero</p>
+                </div>
+              </div>
+
+              {/* Time */}
+              <div className="flex items-center gap-4 bg-orange-50 p-4 rounded-2xl border-2 border-orange-100">
+                <div className="bg-blippi-orange p-3 rounded-full shrink-0">
+                  <Clock className="text-white" size={28} />
+                </div>
+                <div>
+                  <p className="font-blippi text-gray-500 text-sm font-bold uppercase tracking-wider">Hora</p>
+                  <p className="font-blippi text-blippi-orange text-2xl font-bold">4:00 - 6:00 PM</p>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="flex items-center gap-4 bg-blue-50 p-4 rounded-2xl border-2 border-blue-100">
+                <div className="bg-blippi-blue p-3 rounded-full shrink-0">
+                  <MapPin className="text-white" size={28} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-blippi text-gray-500 text-sm font-bold uppercase tracking-wider">Zona de Obra</p>
+                  <p className="font-blippi text-blippi-blue text-xl font-bold leading-tight truncate">Salón de Fiestas</p>
+                  <a 
+                    href="https://maps.app.goo.gl/VCwWR67ZTpjwADVJ6" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-blippi-orange text-base font-bold underline mt-1 block hover:text-orange-600"
+                  >
+                    Ver Mapa de la Obra
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="space-y-4 pb-12 relative z-10">
+            
+            {/* Aviso de confirmación */}
+            <div className="bg-yellow-50 border-2 border-blippi-orange/30 p-4 rounded-2xl mb-2 text-center shadow-sm relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-2 h-full bg-blippi-orange"></div>
+               <div className="flex items-center justify-center gap-2 mb-1">
+                 <TriangleAlert className="text-blippi-orange" size={20} />
+                 <p className="font-blippi font-bold text-blippi-orange text-lg">AVISO DE OBRA</p>
+               </div>
+               <p className="font-blippi text-gray-700 text-sm leading-tight">
+                 Por favor confirma solo si estás <span className="font-bold text-blippi-blue">100% SEGURO</span> de asistir para preparar tus materiales.
+               </p>
+            </div>
+
+            <button 
+              onClick={() => setRsvpOpen(true)}
+              className="w-full bg-blippi-orange hover:bg-orange-600 text-white font-blippi font-bold text-2xl py-5 rounded-full shadow-[0_6px_0_rgb(180,60,0)] active:shadow-none active:translate-y-2 transition-all flex items-center justify-center gap-3"
+            >
+              <HardHat size={28} />
+              CONFIRMAR ASISTENCIA
+            </button>
+            
+            <a 
+              href="https://maps.app.goo.gl/VCwWR67ZTpjwADVJ6"
+              target="_blank"
+              rel="noreferrer"
+              className="w-full bg-white hover:bg-gray-50 text-blippi-blue font-blippi font-bold text-xl py-4 rounded-full shadow-md border-4 border-blippi-blue flex items-center justify-center gap-2 block text-center"
+            >
+              <MapPin size={24} />
+              CÓMO LLEGAR
+            </a>
+          </div>
+
+        </div>
+
+        {/* Floating Music Control */}
+        {!showVideoIntro && (
+          <button 
+            onClick={toggleMusic}
+            className="fixed bottom-6 right-6 bg-white p-4 rounded-full shadow-xl border-4 border-blippi-blue z-40 animate-bounce-slow active:scale-95 transition-transform"
+          >
+            {isPlaying ? <Music className="text-blippi-orange animate-pulse" size={28} /> : <Play className="text-gray-400" size={28} />}
+          </button>
+        )}
+
+        {/* RSVP Modal */}
+        {rsvpOpen && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4">
+            <div className="absolute inset-0 bg-blippi-blue/90 backdrop-blur-md" onClick={() => setRsvpOpen(false)}></div>
+            
+            <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full max-w-sm p-8 relative z-10 shadow-2xl animate-[float_0.5s_ease-out] border-t-8 sm:border-8 border-blippi-orange">
+              <button 
+                onClick={() => setRsvpOpen(false)}
+                className="absolute top-4 right-4 bg-gray-100 text-gray-500 w-10 h-10 rounded-full font-bold flex items-center justify-center hover:bg-gray-200"
+              >
+                X
+              </button>
+
+              {!formSubmitted ? (
+                <>
+                  <div className="text-center mb-6 mt-2">
+                    <div className="inline-block bg-orange-100 p-4 rounded-full mb-3">
+                       {/* Icono: Camión de regalo/entrega */}
+                       <Truck className="text-blippi-orange" size={40} />
+                    </div>
+                    <h3 className="font-blippi text-3xl font-bold text-gray-800">¿Te unes al equipo?</h3>
+                    <p className="text-gray-600 font-blippi text-lg leading-tight mt-2">Confirma tu asistencia para prepararte tu equipo de construcción.</p>
+                  </div>
+                  
+                  <form onSubmit={handleRSVP} className="space-y-5">
+                    <div>
+                      <label className="block font-blippi font-bold text-sm text-gray-500 mb-2 uppercase tracking-wide">Nombre del Ingeniero/a</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        className="w-full border-4 border-gray-100 rounded-2xl p-4 font-blippi text-lg focus:border-blippi-orange focus:outline-none transition-colors bg-gray-50"
+                        placeholder="Escribe tu nombre aquí..."
+                      />
+                    </div>
+                    
+                    <button 
+                      type="submit"
+                      className="w-full bg-blippi-blue text-white font-blippi font-bold text-2xl py-4 rounded-2xl hover:bg-blue-600 shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                      <span>¡ENVIAR CONFIRMACIÓN!</span>
+                      <MessageCircle size={24} className="fill-current"/>
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="flex justify-center mb-6">
+                    <div className="bg-green-100 p-6 rounded-full animate-bounce">
+                      <HardHat size={64} className="text-green-500" />
+                    </div>
+                  </div>
+                  <h3 className="font-blippi text-3xl font-bold text-gray-800 mb-3">¡GENIAL!</h3>
+                  <p className="font-blippi text-xl text-gray-600">Redirigiendo a WhatsApp...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
